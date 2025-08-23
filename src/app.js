@@ -1,0 +1,38 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+
+const userRoutes = require('./routes/userRoutes');
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(morgan('combined'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/users', userRoutes);
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'API de Tienda Online',
+    version: '1.0.0'
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Endpoint no encontrado'
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Error interno del servidor'
+  });
+});
+
+module.exports = app;
