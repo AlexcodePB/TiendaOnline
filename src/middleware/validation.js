@@ -1,7 +1,7 @@
 const validateUserData = (req, res, next) => {
-  const { nombre, email, contrasenia } = req.body;
+  const { name, email, password } = req.body;
   
-  if (!nombre || typeof nombre !== 'string' || nombre.trim().length === 0) {
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena válida' });
   }
   
@@ -14,11 +14,11 @@ const validateUserData = (req, res, next) => {
     return res.status(400).json({ error: 'El email debe tener un formato válido' });
   }
   
-  if (req.method === 'POST' && (!contrasenia || contrasenia.length < 6)) {
+  if (req.method === 'POST' && (!password || password.length < 6)) {
     return res.status(400).json({ error: 'La contraseña es requerida y debe tener al menos 6 caracteres' });
   }
   
-  req.body.nombre = nombre.trim();
+  req.body.name = name.trim();
   req.body.email = email.toLowerCase().trim();
   
   next();

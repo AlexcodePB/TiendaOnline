@@ -12,6 +12,14 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Verificar si el usuario puede ver este perfil
+    if (req.user.role !== 'admin' && req.user._id.toString() !== id) {
+      return res.status(403).json({ 
+        error: 'Solo puedes ver tu propio perfil o ser administrador' 
+      });
+    }
+    
     const user = await User.findById(id);
     
     if (!user) {
@@ -29,7 +37,7 @@ const getUserById = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { nombre, email, contrasenia, telefono } = req.body;
+    const { name, email, password, phone } = req.body;
     
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -37,10 +45,10 @@ const createUser = async (req, res) => {
     }
     
     const newUser = new User({
-      nombre,
+      name,
       email,
-      contrasenia,
-      telefono
+      password,
+      phone
     });
     
     const savedUser = await newUser.save();
@@ -57,7 +65,14 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, contrasenia, telefono } = req.body;
+    const { name, email, password, phone } = req.body;
+    
+    // Verificar si el usuario puede actualizar este perfil
+    if (req.user.role !== 'admin' && req.user._id.toString() !== id) {
+      return res.status(403).json({ 
+        error: 'Solo puedes actualizar tu propio perfil o ser administrador' 
+      });
+    }
     
     if (email) {
       const existingUser = await User.findOne({ email, _id: { $ne: id } });
@@ -66,9 +81,9 @@ const updateUser = async (req, res) => {
       }
     }
     
-    const updateData = { nombre, email, telefono };
-    if (contrasenia) {
-      updateData.contrasenia = contrasenia;
+    const updateData = { name, email, phone };
+    if (password) {
+      updateData.password = password;
     }
     
     const updatedUser = await User.findByIdAndUpdate(

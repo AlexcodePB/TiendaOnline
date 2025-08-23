@@ -1,4 +1,5 @@
 const express = require('express');
+const { authenticateToken, isAdmin, authorizeRoles } = require('../middleware/auth');
 const {
   getAllUsers,
   getUserById,
@@ -9,10 +10,10 @@ const {
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
-router.get('/:id', getUserById);
-router.post('/', createUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.get('/', authenticateToken, isAdmin, getAllUsers);
+router.get('/:id', authenticateToken, authorizeRoles('admin', 'client'), getUserById);
+router.post('/', authenticateToken, isAdmin, createUser);
+router.put('/:id', authenticateToken, authorizeRoles('admin', 'client'), updateUser);
+router.delete('/:id', authenticateToken, isAdmin, deleteUser);
 
 module.exports = router;

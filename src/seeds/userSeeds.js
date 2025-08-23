@@ -1,62 +1,76 @@
-const mongoose = require('mongoose');
-const User = require('../models/User');
-require('dotenv').config();
+const mongoose = require("mongoose");
+const User = require("../models/User");
+require("dotenv").config();
 
 const usuarios = [
   {
-    nombre: 'Usuario Test',
-    email: 'test@test.com',
-    contrasenia: '12345678',
-    telefono: '+34 123 456 789'
+    name: "Usuario Test",
+    email: "test@test.com",
+    password: "12345678",
+    phone: "+54 123 456 789",
+    role: "client",
   },
   {
-    nombre: 'Admin',
-    email: 'admin@test.com',
-    contrasenia: '12345678',
-    telefono: '+34 987 654 321'
+    name: "Admin Principal",
+    email: "admin@test.com",
+    password: "12345678",
+    phone: "+54 987 654 321",
+    role: "admin",
   },
   {
-    nombre: 'Juan Pérez',
-    email: 'juan@test.com',
-    contrasenia: '12345678',
-    telefono: '+34 555 123 456'
+    name: "Super Admin",
+    email: "superadmin@test.com",
+    password: "12345678",
+    phone: "+54 111 222 333",
+    role: "admin",
   },
   {
-    nombre: 'María García',
-    email: 'maria@test.com',
-    contrasenia: '12345678',
-    telefono: '+34 555 987 654'
+    name: "Juan Pérez",
+    email: "juan@test.com",
+    password: "12345678",
+    phone: "+54 555 123 456",
+    role: "client",
   },
   {
-    nombre: 'Carlos López',
-    email: 'carlos@test.com',
-    contrasenia: '12345678'
-  }
+    name: "María García",
+    email: "maria@test.com",
+    password: "12345678",
+    phone: "+54 555 987 654",
+    role: "client",
+  },
+  {
+    name: "Carlos López",
+    email: "carlos@test.com",
+    password: "12345678",
+    phone: "+54 555 987 654",
+    role: "client",
+  },
 ];
 
 const seedUsers = async () => {
   try {
-    console.log('Conectando a MongoDB...');
+    console.log("Conectando a MongoDB...");
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ Conectado a MongoDB');
+    console.log("✅ Conectado a MongoDB");
 
-    console.log('Eliminando usuarios existentes...');
+    console.log("Eliminando usuarios existentes...");
     await User.deleteMany({});
-    console.log('✅ Usuarios existentes eliminados');
+    console.log("✅ Usuarios existentes eliminados");
 
-    console.log('Creando usuarios de prueba...');
+    console.log("Creando usuarios de prueba...");
     const usuariosCreados = await User.create(usuarios);
     console.log(`✅ ${usuariosCreados.length} usuarios creados exitosamente`);
 
-    usuariosCreados.forEach(usuario => {
-      console.log(`- ${usuario.nombre} (${usuario.email})`);
+    usuariosCreados.forEach((usuario) => {
+      console.log(
+        `- ${usuario.name} (${usuario.email}) - Rol: ${usuario.role}`
+      );
     });
 
-    console.log('\n🎉 Seeds ejecutados correctamente');
+    console.log("\n🎉 Seeds ejecutados correctamente");
     process.exit(0);
-
   } catch (error) {
-    console.error('❌ Error ejecutando seeds:', error);
+    console.error("❌ Error ejecutando seeds:", error);
     process.exit(1);
   }
 };
