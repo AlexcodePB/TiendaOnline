@@ -5,6 +5,7 @@ const morgan = require('morgan');
 
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 const app = express();
 
@@ -16,11 +17,17 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
 
 app.get('/', (req, res) => {
   res.json({
     message: 'API de Tienda Online',
-    version: '1.0.0'
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      products: '/api/products'
+    }
   });
 });
 
