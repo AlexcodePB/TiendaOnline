@@ -200,6 +200,32 @@ npm start
 
 El servidor se ejecutará en: `http://localhost:3000`
 
+### 📖 Documentación de la API
+
+La documentación completa de la API está disponible en **Swagger UI**:
+
+**🔗 URL:** `http://localhost:3000/api-docs`
+
+**Características de la documentación:**
+- ✅ **Interfaz interactiva** - Prueba todos los endpoints directamente
+- ✅ **Autenticación JWT** - Botón "Authorize" para configurar tu token
+- ✅ **Esquemas completos** - Todos los modelos de datos documentados
+- ✅ **Ejemplos reales** - Datos de ejemplo para cada endpoint
+- ✅ **Filtros detallados** - Documentación completa de todos los filtros disponibles
+- ✅ **Códigos de respuesta** - Todas las respuestas posibles explicadas
+
+**🚀 Inicio rápido con Swagger:**
+
+1. **Inicia el servidor:** `npm run dev`
+2. **Abre la documentación:** `http://localhost:3000/api-docs`
+3. **Auténticate:**
+   - Haz clic en "Authorize" 🔒
+   - Login primero en `/api/auth/login` para obtener tu token
+   - Ingresa: `Bearer {tu_token_jwt}`
+4. **Prueba los endpoints** directamente desde la interfaz
+
+**💡 Tip:** Usa los usuarios de prueba para testing rápido (ver sección de Seeds)
+
 ## 📚 API Endpoints
 
 ### Autenticación
