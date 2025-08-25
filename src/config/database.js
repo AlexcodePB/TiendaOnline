@@ -2,9 +2,12 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      ssl: false,
-      tls: false
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error('MONGODB_URI no está definido');
+
+    // Para Atlas, deja TLS habilitado por defecto. Para local, el driver maneja la conexión sin TLS.
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 15000,
     });
     console.log(`MongoDB conectado: ${conn.connection.host}`);
   } catch (error) {

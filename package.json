@@ -8,7 +8,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "start:seed": "node src/seeds/allSeeds.js && node src/server.js",
+    "dev:seed": "node src/seeds/allSeeds.js && nodemon src/server.js",
     "seed": "node src/seeds/allSeeds.js",
+    "seeds": "npm run seed",
     "seed:users": "node src/seeds/userSeeds.js",
     "seed:products": "node src/seeds/productSeeds.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,6 +28,7 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.0",
+    "mongodb": "^6.18.0",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",

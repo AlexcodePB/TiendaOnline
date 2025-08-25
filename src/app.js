@@ -19,7 +19,10 @@ const isProd = process.env.NODE_ENV === 'production';
 const swaggerEnabled = process.env.SWAGGER_ENABLED === 'true' || !isProd;
 
 // Parse allowed origins from env (comma-separated)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 const defaultOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -28,13 +31,35 @@ const defaultOrigins = [
 ];
 const origins = allowedOrigins.length ? allowedOrigins : defaultOrigins;
 
+function isOriginAllowed(origin) {
+  if (!origin) return true; // allow tools like curl
+  try {
+    const { hostname, protocol } = new URL(origin);
+    for (const entry of origins) {
+      // Exact match
+      if (origin === entry) return true;
+      // Allow both http/https variants for exact host entries
+      if (entry.startsWith('http')) {
+        const u = new URL(entry);
+        if (u.hostname === hostname) return true;
+      }
+      // Wildcard domain support: entries like *.vercel.app
+      if (entry.startsWith('*.')) {
+        const suffix = entry.slice(1); // remove leading '*'
+        if (hostname.endsWith(suffix)) return true;
+      }
+    }
+  } catch (e) {
+    // If origin is not a valid URL, fall back to strict deny
+    return false;
+  }
+  return false;
+}
+
 app.use(helmet());
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like curl/postman) or those in the list
-    if (!origin || origins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    }
+    if (isOriginAllowed(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
