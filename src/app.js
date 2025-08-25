@@ -14,27 +14,43 @@ const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 
+// Config helpers
+const isProd = process.env.NODE_ENV === 'production';
+const swaggerEnabled = process.env.SWAGGER_ENABLED === 'true' || !isProd;
+
+// Parse allowed origins from env (comma-separated)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+const defaultOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001'
+];
+const origins = allowedOrigins.length ? allowedOrigins : defaultOrigins;
+
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3001',
-    'http://192.168.0.160:3000'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl/postman) or those in the list
+    if (!origin || origins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-app.use(morgan('combined'));
+app.use(morgan(isProd ? 'tiny' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Skate Shop API Documentation'
-}));
+if (swaggerEnabled) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Skate Shop API Documentation'
+  }));
+}
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -47,7 +63,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'API de Tienda Online',
     version: '1.0.0',
-    documentation: '/api-docs',
+    documentation: swaggerEnabled ? '/api-docs' : undefined,
     endpoints: {
       auth: '/api/auth',
       users: '/api/users',
@@ -55,6 +71,11 @@ app.get('/', (req, res) => {
       cart: '/api/cart'
     }
   });
+});
+
+// Healthcheck endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development' });
 });
 
 app.use((req, res) => {
