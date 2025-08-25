@@ -118,7 +118,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', authenticateToken, authorizeRoles('admin', 'client'), getAllProducts);
+router.get('/', getAllProducts);
 
 /**
  * @swagger
@@ -126,8 +126,7 @@ router.get('/', authenticateToken, authorizeRoles('admin', 'client'), getAllProd
  *   get:
  *     summary: Obtener todas las categorías disponibles
  *     tags: [Products]
- *     security:
- *       - bearerAuth: []
+ *     security: []
  *     responses:
  *       200:
  *         description: Lista de categorías
@@ -144,12 +143,6 @@ router.get('/', authenticateToken, authorizeRoles('admin', 'client'), getAllProd
  *                 total:
  *                   type: integer
  *                   example: 8
- *       401:
- *         description: No autenticado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -157,7 +150,7 @@ router.get('/', authenticateToken, authorizeRoles('admin', 'client'), getAllProd
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/categories', authenticateToken, authorizeRoles('admin', 'client'), getCategories);
+router.get('/categories', getCategories);
 
 /**
  * @swagger
@@ -165,8 +158,7 @@ router.get('/categories', authenticateToken, authorizeRoles('admin', 'client'), 
  *   get:
  *     summary: Obtener productos por categoría con filtros
  *     tags: [Products]
- *     security:
- *       - bearerAuth: []
+ *     security: []
  *     parameters:
  *       - in: path
  *         name: category
@@ -242,12 +234,6 @@ router.get('/categories', authenticateToken, authorizeRoles('admin', 'client'), 
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: No autenticado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: No se encontraron productos en esta categoría
  *         content:
@@ -261,7 +247,7 @@ router.get('/categories', authenticateToken, authorizeRoles('admin', 'client'), 
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/category/:category', authenticateToken, authorizeRoles('admin', 'client'), getProductsByCategory);
+router.get('/category/:category', getProductsByCategory);
 
 /**
  * @swagger
@@ -269,8 +255,7 @@ router.get('/category/:category', authenticateToken, authorizeRoles('admin', 'cl
  *   get:
  *     summary: Obtener producto por ID
  *     tags: [Products]
- *     security:
- *       - bearerAuth: []
+ *     security: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -291,12 +276,6 @@ router.get('/category/:category', authenticateToken, authorizeRoles('admin', 'cl
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: No autenticado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Producto no encontrado
  *         content:
@@ -310,7 +289,7 @@ router.get('/category/:category', authenticateToken, authorizeRoles('admin', 'cl
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', authenticateToken, authorizeRoles('admin', 'client'), getProductById);
+router.get('/:id', getProductById);
 
 /**
  * @swagger

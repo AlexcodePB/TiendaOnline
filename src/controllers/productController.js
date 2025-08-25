@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 const FilterService = require('../services/filterService');
+const { deleteImage } = require('../services/cloudinaryService');
 
 const getAllProducts = async (req, res) => {
   try {
@@ -173,17 +174,32 @@ const deleteProduct = async (req, res) => {
       return res.status(400).json({ error: 'ID de producto inválido' });
     }
     
-    const deletedProduct = await Product.findByIdAndDelete(id);
+    const product = await Product.findById(id);
     
-    if (!deletedProduct) {
+    if (!product) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
+    
+    // Eliminar imagen de Cloudinary si existe
+    if (product.image && product.image.public_id) {
+      try {
+        await deleteImage(product.image.public_id);
+        console.log(`Imagen eliminada de Cloudinary: ${product.image.public_id}`);
+      } catch (cloudinaryError) {
+        console.error('Error eliminando imagen de Cloudinary:', cloudinaryError);
+        // No fallar toda la operación por un error de Cloudinary
+      }
+    }
+    
+    // Eliminar producto de la base de datos
+    const deletedProduct = await Product.findByIdAndDelete(id);
     
     res.json({
       message: 'Producto eliminado exitosamente',
       product: deletedProduct
     });
   } catch (error) {
+    console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Error al eliminar producto', details: error.message });
   }
 };
