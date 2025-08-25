@@ -1,9 +1,44 @@
 const User = require('../models/User');
+const FilterService = require('../services/filterService');
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
-    res.json(users);
+    const allowedFilters = {
+      role: { type: 'exact' },
+      search: { type: 'regex', field: 'name' },
+      email: { type: 'regex', field: 'email' },
+      createdAfter: { type: 'date', field: 'createdAt' },
+      createdBefore: { type: 'date', field: 'createdAt' }
+    };
+    
+    const validationErrors = FilterService.validateFilterParams(req.query, allowedFilters);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ 
+        error: 'Parámetros de filtro inválidos', 
+        details: validationErrors 
+      });
+    }
+    
+    const filter = FilterService.buildFilter(req.query, allowedFilters);
+    const sortOptions = FilterService.buildSortOptions(req.query.sort || 'date_desc');
+    
+    const total = await User.countDocuments(filter);
+    const { skip, limit: itemsLimit, pagination } = FilterService.getPaginationData(
+      req.query.page, 
+      req.query.limit, 
+      total
+    );
+    
+    const users = await User.find(filter)
+      .skip(skip)
+      .limit(itemsLimit)
+      .sort(sortOptions)
+      .select('-password');
+    
+    res.json({
+      users,
+      pagination
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener usuarios', details: error.message });
   }
@@ -112,6 +147,13 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        error: 'Solo los administradores pueden eliminar usuarios' 
+      });
+    }
+    
     const deletedUser = await User.findByIdAndDelete(id);
     
     if (!deletedUser) {

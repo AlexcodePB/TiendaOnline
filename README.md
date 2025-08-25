@@ -1,6 +1,6 @@
-# Backend Tienda Online
+# Backend Skate Shop Online
 
-API REST desarrollada con Node.js, Express y MongoDB para una tienda online con **autenticación JWT** y **control de acceso basado en roles**.
+API REST desarrollada con Node.js, Express y MongoDB para una **tienda de skateboard** con **autenticación JWT** y **control de acceso basado en roles**.
 
 ## 🚀 Tecnologías
 
@@ -156,8 +156,16 @@ sudo systemctl enable mongod
 ```
 
 ### Poblar la base de datos con datos de prueba
+
 ```bash
+# Poblar usuarios y productos
 npm run seed
+
+# Solo usuarios
+npm run seed:users
+
+# Solo productos  
+npm run seed:products
 ```
 
 **Usuarios creados:**
@@ -170,6 +178,13 @@ npm run seed
 | `juan@test.com` | `12345678` | **client** | Cliente de ejemplo |
 | `maria@test.com` | `12345678` | **client** | Cliente de ejemplo |
 | `carlos@test.com` | `12345678` | **client** | Cliente de ejemplo |
+
+**Productos de skate creados:**
+- **20 productos** especializados en skateboarding
+- **9 categorías:** tables, wheels, trucks, bearings, grip-tape, hardware, tools, clothing, accessories
+- **Marcas auténticas:** Element, Almost, Flip, Spitfire, Bones, Independent, Thunder, Venture, Mob, etc.
+- Precios desde $4.99 (hardware) hasta $119.99 (trucks premium)
+- Stock variado para testing de tienda de skate
 
 ## 🏃‍♂️ Ejecutar la aplicación
 
@@ -184,6 +199,32 @@ npm start
 ```
 
 El servidor se ejecutará en: `http://localhost:3000`
+
+### 📖 Documentación de la API
+
+La documentación completa de la API está disponible en **Swagger UI**:
+
+**🔗 URL:** `http://localhost:3000/api-docs`
+
+**Características de la documentación:**
+- ✅ **Interfaz interactiva** - Prueba todos los endpoints directamente
+- ✅ **Autenticación JWT** - Botón "Authorize" para configurar tu token
+- ✅ **Esquemas completos** - Todos los modelos de datos documentados
+- ✅ **Ejemplos reales** - Datos de ejemplo para cada endpoint
+- ✅ **Filtros detallados** - Documentación completa de todos los filtros disponibles
+- ✅ **Códigos de respuesta** - Todas las respuestas posibles explicadas
+
+**🚀 Inicio rápido con Swagger:**
+
+1. **Inicia el servidor:** `npm run dev`
+2. **Abre la documentación:** `http://localhost:3000/api-docs`
+3. **Auténticate:**
+   - Haz clic en "Authorize" 🔒
+   - Login primero en `/api/auth/login` para obtener tu token
+   - Ingresa: `Bearer {tu_token_jwt}`
+4. **Prueba los endpoints** directamente desde la interfaz
+
+**💡 Tip:** Usa los usuarios de prueba para testing rápido (ver sección de Seeds)
 
 ## 📚 API Endpoints
 
@@ -205,6 +246,67 @@ El servidor se ejecutará en: `http://localhost:3000`
 | POST | `/api/users` | Crear nuevo usuario | **Admin** | Solo administradores |
 | PUT | `/api/users/:id` | Actualizar usuario | **Admin, Client** | Admin: cualquier usuario / Client: solo su propio perfil |
 | DELETE | `/api/users/:id` | Eliminar usuario | **Admin** | Solo administradores |
+
+#### Parámetros de consulta para usuarios (solo admin):
+
+**Filtros básicos:**
+- `?role=admin` - Filtrar por rol (admin, client)
+- `?search=juan` - Búsqueda por nombre
+- `?email=test` - Búsqueda por email
+- `?createdAfter=2024-01-01` - Usuarios registrados después de fecha
+- `?createdBefore=2024-12-31` - Usuarios registrados antes de fecha
+
+**Ordenamiento:**
+- `?sort=name_asc` - Nombre A-Z
+- `?sort=name_desc` - Nombre Z-A  
+- `?sort=date_asc` - Más antiguos primero
+- `?sort=date_desc` - Más recientes primero (por defecto)
+
+**Paginación:**
+- `?page=1&limit=10` - Página y elementos por página (máx. 100)
+
+### Productos (Protegidas con JWT y Roles)
+
+| Método | Endpoint | Descripción | Roles Permitidos | Restricciones |
+|--------|----------|-------------|------------------|---------------|
+| GET | `/api/products` | Obtener todos los productos | **Admin, Client** | Ambos pueden ver productos |
+| GET | `/api/products/:id` | Obtener producto por ID | **Admin, Client** | Ambos pueden ver productos |
+| GET | `/api/products/categories` | Obtener categorías disponibles | **Admin, Client** | Ambos pueden ver categorías |
+| GET | `/api/products/category/:category` | Obtener productos por categoría | **Admin, Client** | Ambos pueden filtrar por categoría |
+| POST | `/api/products` | Crear nuevo producto | **Admin** | Solo administradores |
+| PUT | `/api/products/:id` | Actualizar producto | **Admin** | Solo administradores |
+| DELETE | `/api/products/:id` | Eliminar producto | **Admin** | Solo administradores |
+
+#### Parámetros de consulta para productos:
+
+**Filtros básicos:**
+- `?category=tables` - Filtrar por categoría (tables, wheels, trucks, bearings, etc.)
+- `?minPrice=10&maxPrice=100` - Filtrar por rango de precio
+- `?search=Element` - Búsqueda de texto (marca, nombre, descripción)
+- `?inStock=true` - Solo productos disponibles (stock > 0)
+- `?stock=available` - Productos disponibles | `?stock=outOfStock` - Sin stock
+
+**Ordenamiento:**
+- `?sort=price_asc` - Precio ascendente
+- `?sort=price_desc` - Precio descendente  
+- `?sort=name_asc` - Nombre A-Z
+- `?sort=name_desc` - Nombre Z-A
+- `?sort=date_asc` - Más antiguos primero
+- `?sort=date_desc` - Más recientes primero (por defecto)
+
+**Paginación:**
+- `?page=1&limit=10` - Página y elementos por página (máx. 100)
+
+#### Categorías disponibles:
+- **tables** - Tablas de skateboard (Element, Almost, Flip)
+- **wheels** - Ruedas (Spitfire, Bones, Ricta)
+- **trucks** - Trucks/ejes (Independent, Thunder, Venture)
+- **bearings** - Rodamientos (Bones Reds, Swiss, Super Reds)
+- **grip-tape** - Lija/grip tape (Mob, Jessup)
+- **hardware** - Tornillería (Independent, Shake Junt)
+- **tools** - Herramientas (llaves, multi-tools)
+- **clothing** - Ropa de skate
+- **accessories** - Accesorios varios
 
 ### Ejemplos de uso
 
@@ -255,16 +357,82 @@ curl http://localhost:3000/api/users \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-**5. Crear usuario (requiere token de admin):**
+**5. Obtener todos los productos (requiere token):**
 ```bash
-curl -X POST http://localhost:3000/api/users \
+curl http://localhost:3000/api/products \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**6. Obtener productos con filtros (skate shop):**
+```bash
+# Tablas de skateboard ordenadas por precio
+curl "http://localhost:3000/api/products?category=tables&sort=price_asc" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Productos por rango de precio solo disponibles
+curl "http://localhost:3000/api/products?minPrice=20&maxPrice=100&inStock=true" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Buscar productos Element con paginación
+curl "http://localhost:3000/api/products?search=Element&page=1&limit=5&sort=name_asc" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Ruedas disponibles ordenadas por precio descendente
+curl "http://localhost:3000/api/products/category/wheels?inStock=true&sort=price_desc" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Productos sin stock
+curl "http://localhost:3000/api/products?stock=outOfStock" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**7. Crear producto de skate (requiere token de admin):**
+```bash
+curl -X POST http://localhost:3000/api/products \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" \
   -d '{
-    "name": "Usuario Admin",
-    "email": "admin@email.com",
-    "password": "123456"
+    "name": "Baker Brand Deck 8.0\"",
+    "description": "Tabla Baker profesional de 8.0 pulgadas, maple canadiense premium con gráfico clásico del logo.",
+    "price": 79.99,
+    "image": {
+      "url": "https://example.com/images/baker-deck-80.jpg",
+      "public_id": "baker-deck-80_xyz123"
+    },
+    "stock": 12,
+    "category": "tables"
   }'
+```
+
+**8. Actualizar producto (requiere token de admin):**
+```bash
+curl -X PUT http://localhost:3000/api/products/PRODUCT_ID \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" \
+  -d '{
+    "name": "Element Nyjah Huston Pro Model 8.0\"",
+    "price": 89.99,
+    "stock": 15,
+    "image": {
+      "url": "https://example.com/images/element-nyjah-pro-80.jpg",
+      "public_id": "element-nyjah-pro-80_abc456"
+    }
+  }'
+```
+
+**9. Obtener usuarios con filtros (requiere token de admin):**
+```bash
+# Usuarios admin registrados en 2024
+curl "http://localhost:3000/api/users?role=admin&createdAfter=2024-01-01" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN"
+
+# Buscar usuarios por nombre
+curl "http://localhost:3000/api/users?search=juan&sort=name_asc" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN"
+
+# Usuarios clients con paginación
+curl "http://localhost:3000/api/users?role=client&page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN"
 ```
 
 ## 🛡️ Seguridad
