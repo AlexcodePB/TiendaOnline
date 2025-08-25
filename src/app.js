@@ -70,8 +70,6 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));
-// Preflight para todos los endpoints
-app.options('*', cors(corsOptions));
 app.use(morgan(isProd ? 'tiny' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
