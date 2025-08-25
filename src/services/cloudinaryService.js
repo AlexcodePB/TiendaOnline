@@ -7,11 +7,13 @@ const config = {
   api_secret: process.env.CLOUDINARY_API_SECRET,
 };
 
-console.log('Cloudinary config:', {
-  cloud_name: config.cloud_name || 'NOT_SET',
-  api_key: config.api_key ? 'SET' : 'NOT_SET',
-  api_secret: config.api_secret ? 'SET' : 'NOT_SET'
-});
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Cloudinary config:', {
+    cloud_name: config.cloud_name || 'NOT_SET',
+    api_key: config.api_key ? 'SET' : 'NOT_SET',
+    api_secret: config.api_secret ? 'SET' : 'NOT_SET'
+  });
+}
 
 cloudinary.config(config);
 
