@@ -102,11 +102,183 @@ app.get('/', (req, res) => {
   });
 });
 
-// Healthcheck endpoint
-app.get('/health', (req, res) => {
-  const states = ['disconnected', 'connected', 'connecting', 'disconnecting', 'unauthorized', 'unknown'];
-  const dbState = states[mongoose.connection.readyState] || 'unknown';
-  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development', db: dbState });
+// Health check endpoint mejorado para Koyeb
+app.get('/health', async (req, res) => {
+  try {
+    const startTime = Date.now();
+    
+    // Estados de mongoose connection
+    const connectionStates = {
+      0: 'disconnected',
+      1: 'connected', 
+      2: 'connecting',
+      3: 'disconnecting',
+      4: 'error'
+    };
+    
+    const dbState = connectionStates[mongoose.connection.readyState] || 'unknown';
+    const isDbHealthy = mongoose.connection.readyState === 1;
+    
+    // Información básica del sistema
+    const memoryUsage = process.memoryUsage();
+    const uptime = process.uptime();
+    
+    // Test de conexión DB rápido
+    let dbTest = { success: false, responseTime: null, error: null };
+    if (isDbHealthy) {
+      try {
+        const dbTestStart = Date.now();
+        await mongoose.connection.db.admin().ping();
+        dbTest = {
+          success: true,
+          responseTime: Date.now() - dbTestStart,
+          error: null
+        };
+      } catch (dbError) {
+        dbTest = {
+          success: false,
+          responseTime: Date.now() - dbTestStart,
+          error: dbError.message
+        };
+      }
+    }
+    
+    const healthData = {
+      // Status general
+      status: isDbHealthy && dbTest.success ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      responseTime: Date.now() - startTime,
+      
+      // Información del servidor
+      server: {
+        environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version,
+        platform: `${process.platform} ${process.arch}`,
+        uptime: Math.floor(uptime),
+        pid: process.pid
+      },
+      
+      // Estado de la base de datos
+      database: {
+        status: dbState,
+        connected: isDbHealthy,
+        host: mongoose.connection.host || null,
+        name: mongoose.connection.name || null,
+        test: dbTest
+      },
+      
+      // Memoria y recursos
+      resources: {
+        memory: {
+          rss: Math.round(memoryUsage.rss / 1024 / 1024), // MB
+          heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024), // MB
+          heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024), // MB
+          external: Math.round(memoryUsage.external / 1024 / 1024) // MB
+        },
+        uptime: {
+          seconds: Math.floor(uptime),
+          human: formatUptime(uptime)
+        }
+      },
+      
+      // Configuración crítica (sin secretos)
+      config: {
+        port: process.env.PORT || 'default',
+        corsEnabled: !!corsOptions,
+        swaggerEnabled: swaggerEnabled,
+        mongodbConfigured: !!process.env.MONGODB_URI,
+        jwtConfigured: !!process.env.JWT_SECRET,
+        cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY)
+      }
+    };
+    
+    // Determinar código HTTP según estado
+    const httpStatus = healthData.status === 'healthy' ? 200 : 503;
+    
+    res.status(httpStatus).json(healthData);
+    
+  } catch (error) {
+    console.error('❌ Error en health check:', error.message);
+    
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: {
+        message: 'Health check failed',
+        details: error.message
+      },
+      server: {
+        environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version
+      }
+    });
+  }
+});
+
+// Función helper para formatear uptime
+function formatUptime(seconds) {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+// Endpoint adicional para health check simple (para load balancers)
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
+// Endpoint de readiness (listo para recibir tráfico)
+app.get('/ready', async (req, res) => {
+  try {
+    const isDbConnected = mongoose.connection.readyState === 1;
+    
+    if (isDbConnected) {
+      // Test rápido de DB
+      await mongoose.connection.db.admin().ping();
+      res.status(200).json({
+        ready: true,
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'ready'
+        }
+      });
+    } else {
+      res.status(503).json({
+        ready: false,
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'not_ready'
+        }
+      });
+    }
+  } catch (error) {
+    res.status(503).json({
+      ready: false,
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
+});
+
+// Endpoint de liveness (proceso funcionando)
+app.get('/live', (req, res) => {
+  res.status(200).json({
+    alive: true,
+    timestamp: new Date().toISOString(),
+    pid: process.pid,
+    uptime: process.uptime()
+  });
 });
 
 app.use((req, res) => {

@@ -1,0 +1,54 @@
+# Configuración de Koyeb para GRIND Backend
+services:
+  - name: grind-backend
+    type: web
+    
+    # Configuración del build
+    build:
+      type: buildpack
+      buildpack:
+        name: nodejs
+        version: "18"
+    
+    # Configuración de la instancia
+    instance:
+      type: nano  # nano, micro, small, medium, large
+    
+    # Health checks
+    health_check:
+      http:
+        path: /health
+        port: 8000
+        timeout: 30s
+        interval: 30s
+        retries: 3
+    
+    # Configuración de scaling
+    scaling:
+      min: 1
+      max: 3
+    
+    # Variables de entorno (definir en Koyeb Dashboard por seguridad)
+    # env:
+    #   - name: NODE_ENV
+    #     value: production
+    #   - name: PORT
+    #     value: "8000"
+    
+    # Regiones disponibles: was (Washington), fra (Frankfurt)
+    regions:
+      - was
+    
+    # Configuración de red
+    ports:
+      - port: 8000
+        protocol: http
+    
+    # Configuración de logs
+    # Los logs se pueden ver en Koyeb Dashboard
+    
+# Configuración adicional
+metadata:
+  name: "GRIND - Tienda Online Backend"
+  description: "API REST para e-commerce con Node.js, Express y MongoDB"
+  version: "1.0.0"

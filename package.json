@@ -14,7 +14,11 @@
     "seeds": "npm run seed",
     "seed:users": "node src/seeds/userSeeds.js",
     "seed:products": "node src/seeds/productSeeds.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:mongo": "node test-mongo.js",
+    "test:connection": "npm run test:mongo",
+    "build": "echo 'No build step needed for Node.js'",
+    "health": "curl -f http://localhost:8000/health || exit 1"
   },
   "keywords": [],
   "author": "",
