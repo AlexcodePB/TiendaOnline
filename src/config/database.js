@@ -7,7 +7,7 @@ const connectDB = async () => {
 
     // Para Atlas, deja TLS habilitado por defecto. Para local, el driver maneja la conexión sin TLS.
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 30000,
     });
     console.log(`MongoDB conectado: ${conn.connection.host}`);
   } catch (error) {

@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const mongoose = require('mongoose');
 
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -17,6 +18,7 @@ const app = express();
 // Config helpers
 const isProd = process.env.NODE_ENV === 'production';
 const swaggerEnabled = process.env.SWAGGER_ENABLED === 'true' || !isProd;
+const allowAllCors = process.env.CORS_ALLOW_ALL === 'true';
 
 // Parse allowed origins from env (comma-separated)
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
@@ -57,15 +59,19 @@ function isOriginAllowed(origin) {
 }
 
 app.use(helmet());
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
+    if (allowAllCors) return callback(null, true); // permitir cualquier origen
     if (isOriginAllowed(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+};
+app.use(cors(corsOptions));
+// Preflight para todos los endpoints
+app.options('*', cors(corsOptions));
 app.use(morgan(isProd ? 'tiny' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -100,7 +106,9 @@ app.get('/', (req, res) => {
 
 // Healthcheck endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development' });
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting', 'unauthorized', 'unknown'];
+  const dbState = states[mongoose.connection.readyState] || 'unknown';
+  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development', db: dbState });
 });
 
 app.use((req, res) => {
